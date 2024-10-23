@@ -2,6 +2,7 @@ const http = require('http');
 const { Command } = require('commander');
 const fs = require('fs').promises;
 const path = require('path');
+const superagent = require('superagent');
 const program = new Command();
 
 program
@@ -28,10 +29,21 @@ const server = http.createServer(async (req, res) => {
             res.writeHead(200, { 'Content-Type': 'image/jpeg' });
             res.end(data);
         } catch (err) {
-
             if (err.code === 'ENOENT') {
-                res.writeHead(404, { 'Content-Type': 'text/plain' });
-                res.end('404 Not Found');
+
+                try {
+                    const response = await superagent.get(`https://http.cat/${statusCode}`);
+                    const imageData = response.body;
+
+
+                    await fs.writeFile(cachedImagePath, imageData);
+                    res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+                    res.end(imageData);
+                } catch (fetchError) {
+
+                    res.writeHead(404, { 'Content-Type': 'text/plain' });
+                    res.end('404 Not Found');
+                }
             } else {
                 res.writeHead(500, { 'Content-Type': 'text/plain' });
                 res.end('Internal Server Error');
@@ -39,7 +51,6 @@ const server = http.createServer(async (req, res) => {
         }
     }
     else if (req.method === 'PUT') {
-
         let imageData = [];
         req.on('data', chunk => {
             imageData.push(chunk);
@@ -55,13 +66,11 @@ const server = http.createServer(async (req, res) => {
         });
     }
     else if (req.method === 'DELETE') {
-
         try {
             await fs.unlink(cachedImagePath);
             res.writeHead(200, { 'Content-Type': 'text/plain' });
             res.end('Deleted');
         } catch (err) {
-
             if (err.code === 'ENOENT') {
                 res.writeHead(404, { 'Content-Type': 'text/plain' });
                 res.end('404 Not Found');
@@ -71,12 +80,9 @@ const server = http.createServer(async (req, res) => {
             }
         }
     } else {
-
         res.writeHead(405, { 'Content-Type': 'text/plain' });
         res.end('405 Method Not Allowed');
     }
-
-
 });
 
 server.listen(port, host, () => {
