@@ -54,6 +54,28 @@ const server = http.createServer(async (req, res) => {
             }
         });
     }
+    else if (req.method === 'DELETE') {
+
+        try {
+            await fs.unlink(cachedImagePath);
+            res.writeHead(200, { 'Content-Type': 'text/plain' });
+            res.end('Deleted');
+        } catch (err) {
+
+            if (err.code === 'ENOENT') {
+                res.writeHead(404, { 'Content-Type': 'text/plain' });
+                res.end('404 Not Found');
+            } else {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('Internal Server Error');
+            }
+        }
+    } else {
+
+        res.writeHead(405, { 'Content-Type': 'text/plain' });
+        res.end('405 Method Not Allowed');
+    }
+
 
 });
 
