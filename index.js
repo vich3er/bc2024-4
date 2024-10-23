@@ -38,8 +38,22 @@ const server = http.createServer(async (req, res) => {
             }
         }
     }
+    else if (req.method === 'PUT') {
 
-
+        let imageData = [];
+        req.on('data', chunk => {
+            imageData.push(chunk);
+        }).on('end', async () => {
+            try {
+                await fs.writeFile(cachedImagePath, Buffer.concat(imageData));
+                res.writeHead(201, { 'Content-Type': 'text/plain' });
+                res.end('Created');
+            } catch (err) {
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('Internal Server Error');
+            }
+        });
+    }
 
 });
 
