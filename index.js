@@ -15,7 +15,7 @@ const port =  options.port;
 const cache =  options.cache;
 
 const server =  http.createServer(async(req, res) => {
-    res.end('Server is running;)')
+    res.end('server is running')
 });
 
 server.listen(port, host, () => {
